@@ -90,3 +90,33 @@ find / -perm -4000 -type f 2>/dev/null
 нет файлов и папок с правами 777;
 в общих папках команды стоит setgid, а права выданы группе;
 список find / -perm -4000 не содержит незнакомых программ.
+
+find / -perm -4000 -type f 2>/dev/null
+/usr/bin/mount
+/usr/bin/sudo.ws
+/usr/bin/chfn
+/usr/bin/umount
+/usr/bin/gpasswd
+/usr/bin/fusermount3
+/usr/bin/chsh
+/usr/bin/su
+/usr/bin/passwd
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/lib/landscape/apt-update
+/usr/lib/cargo/bin/sudo
+/usr/lib/cargo/bin/s
+
+!проверить
+
+Чек-лист
+Сервис настроен аккуратно, когда:
+
+юнит лежит в /etc/systemd/system/, команда запуска – полным путём;
+сервис работает от своего пользователя, а не от root, и перезапускается при падении;
+после правки юнита выполнен daemon-reload, сервис включён через enable --now;
+systemctl status показывает active (running), а в journalctl -u нет ошибок;
+после перезагрузки сервера сервис поднялся сам.
+
+Временно подключает mount, постоянно — запись в /etc/fstab
+Диск указывают по UUID, уникальному номеру файловой системы, его показывает blkid. Имена вроде /dev/sdb1 могут поменяться после перезагрузки или добавления диска, а UUID остается тем же.
