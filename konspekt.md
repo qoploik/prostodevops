@@ -120,3 +120,44 @@ systemctl status показывает active (running), а в journalctl -u не
 
 Временно подключает mount, постоянно — запись в /etc/fstab
 Диск указывают по UUID, уникальному номеру файловой системы, его показывает blkid. Имена вроде /dev/sdb1 могут поменяться после перезагрузки или добавления диска, а UUID остается тем же.
+
+КОНСПЕКТ 30.10.26 ФИНАЛ МОДУЛЯ: РАЗВЕРТЫВАНИЕ ЕДЫ
+1. sudo useradd -m appuser #создать юзера с домашней директорией, без -s (пароля)
+1.1. sudo usermod -s /usr/sbin/nologin appuser #исправил, тк требовалось чтобы никто не мог зайти под этим пользователем -s /usr/sbin/nologin/
+[2-3] easy
+4. sudo chown -R appuser:appuser /srv/dostavka-eda/ #директория принадлежит группе и пользователю
+5. chmod 600 #*.yaml*
+6. #самое сложное#
+[Unit]
+Description=
+After=
+[Service]
+User=<username>
+ExecStart= dependency *.sh*
+Restart=on-failure #(wake up when down)
+RestartSec=5
+
+[Install]
+WantedBy=<other service>
+7. 
+sudo systemctl daemon-reload
+sudo systemctl start dostavka
+sudo systemctl enable dostavka
+## проверка
+systemctl is-active dostavka #active
+systemctl is-enabled dostavka #enabled
+8...
+sudo dd if=/dev/zero of=/swapfile bs=1M count=256 status=progress #Создай файл нужного размера
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile #Размети файл как swap-область (это создаёт на файле специальную swap-сигнатуру, похоже на mkfs, но для свопа — не файловая система, а формат подкачки)
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab #чтобы swap подключался автоматически при каждой загрузке
+
+
+### Подыч · зачтено · +20 XP
+### Swap-файл готов и записан в fstab. На обычном сервере его включили бы командой swapon и проверили в free -h.
+
+
+kvizzez
+Заведите служебного пользователя dostavka для бэкенда: с домашней папкой, но так, чтобы войти под ним было нельзя. Одна команда.
+Объяснение
+sudo useradd -m -s /usr/sbin/nologin dostavka: -m создаёт домашнюю папку, оболочка nologin не даёт войти. Сервису вход и не нужен – systemd запустит его от этого пользователя сам.
